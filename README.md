@@ -69,7 +69,6 @@ Mid-session requirement (voice):
 - `tests/test_voice_pipeline.py` — Extended voice pipeline tests
 - `tests/test_voice_api.py` — Voice API endpoint + regression tests
 
-You may add or reorganize files when the resulting design remains clear and testable.
 
 ## Requirements
 
