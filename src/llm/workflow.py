@@ -32,7 +32,7 @@ class SupportWorkflowState(TypedDict, total=False):
 
 class IntentClassification(BaseModel):
     intent: Literal["answer", "ticket"] = Field(
-        description="Whether the customer wants a policy answer or is reporting an issue / requesting a ticket"
+        description="Must be 'answer' for general questions, factual queries, trivia, or if they just want information. Must be 'ticket' ONLY if they report an unresolved personal issue or ask to file a ticket."
     )
     customer_name: str | None = Field(default=None, description="Customer name if provided")
     customer_email: str | None = Field(default=None, description="Customer email if provided")
@@ -104,7 +104,10 @@ def build_support_workflow(model: BaseChatModel):
             if collected:
                 session_info = "Already collected: " + ", ".join(collected)
 
-        classify_prompt = f"""You are classifying customer intent for a support system.
+        classify_prompt = f"""You must classify the customer's intent into exactly one of these two categories: "answer" or "ticket".
+
+"answer": The customer is asking ANY question, including policy questions, general information, or trivia (e.g., "What is the return policy?", "Who is the CEO?", "What is the CEO's phone number?", "How much is shipping?").
+"ticket": The customer is reporting a specific problem, issue, or complaint (e.g., "My screen is broken", "I was charged twice", "I want to file a complaint").
 
 Knowledge context:
 {context}
@@ -120,12 +123,9 @@ Customer message:
 {message}
 
 Rules:
-- If a ticket collection is already in progress or completed (ticket_id exists), classify as "ticket".
-- If the customer is reporting a problem, complaint, or explicitly asking to create/open a ticket, classify as "ticket".
-- If the customer is asking a general policy question that can be answered from the knowledge context, classify as "answer".
-- Extract any customer_name, customer_email, issue_description, or category the customer has provided in their message.
-- For category, only use: order, payment, account, technical, or other.
-- Only extract fields that the customer explicitly states. Do not invent values."""
+1. If ticket collection is in progress (ticket_id exists), always classify as "ticket".
+2. If the message is a factual question or trivia (like asking for a phone number or name), classify as "answer".
+3. Extract customer_name, customer_email, issue_description, or category ONLY if explicitly provided by the user. Do not invent values."""
 
         try:
             structured_model = model.with_structured_output(IntentClassification)
@@ -155,6 +155,7 @@ Rules:
         return {"route": route, "extracted_fields": extracted}
 
     async def answer(state: SupportWorkflowState) -> SupportWorkflowState:
+        print("DEBUG: Executing ANSWER node")
         chunks = state.get("retrieved_chunks", [])
         message = state.get("customer_message", "")
 
