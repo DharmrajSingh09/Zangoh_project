@@ -32,6 +32,7 @@ class KnowledgeRetriever:
             collection_name=self.settings.rag_collection,
             embedding_function=embeddings,
             persist_directory=persist_dir,
+            collection_metadata={"hnsw:space": "cosine"},
         )
 
         ids = []

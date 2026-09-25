@@ -14,17 +14,22 @@ class Settings:
     suitable for local development and document every new variable in both
     ``.env.example`` and the project README.
     """
-    llm_base_url: str
-    llm_api_key: str
-    llm_model: str
-    vector_db_path: str
-    embedding_model: str
-    rag_collection: str
-    rag_top_k: int
-    api_host: str
-    api_port: int
-    streamlit_host: str
-    streamlit_port: int
+    llm_base_url: str = "http://localhost:11434/v1"
+    llm_api_key: str = "not-required"
+    llm_model: str = "qwen2.5:3b"
+    vector_db_path: str = ".data/vector_db"
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    rag_collection: str = "customer-support"
+    rag_top_k: int = 3
+    api_host: str = "127.0.0.1"
+    api_port: int = 8000
+    streamlit_host: str = "127.0.0.1"
+    streamlit_port: int = 8501
+    # Voice settings (mid-session requirement)
+    stt_model_size: str = "base"
+    stt_device: str = "cpu"
+    stt_compute_type: str = "int8"
+    tts_voice: str = "en-US-AriaNeural"
 
 
 def load_settings() -> Settings:
@@ -50,4 +55,9 @@ def load_settings() -> Settings:
         api_port=int(os.getenv("API_PORT", "8000")),
         streamlit_host=os.getenv("STREAMLIT_HOST", "127.0.0.1"),
         streamlit_port=int(os.getenv("STREAMLIT_PORT", "8501")),
+        # Voice configuration (mid-session requirement)
+        stt_model_size=os.getenv("STT_MODEL_SIZE", "base"),
+        stt_device=os.getenv("STT_DEVICE", "cpu"),
+        stt_compute_type=os.getenv("STT_COMPUTE_TYPE", "int8"),
+        tts_voice=os.getenv("TTS_VOICE", "en-US-AriaNeural"),
     )
